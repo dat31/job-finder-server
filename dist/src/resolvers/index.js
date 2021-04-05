@@ -3,11 +3,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostResolver = exports.UserResolver = exports.HelloResolver = void 0;
 const hello_1 = __importDefault(require("./hello"));
-exports.HelloResolver = hello_1.default;
 const user_1 = __importDefault(require("./user"));
-exports.UserResolver = user_1.default;
 const post_1 = __importDefault(require("./post"));
-exports.PostResolver = post_1.default;
+const job_1 = __importDefault(require("./job"));
+const resolvers = [
+    hello_1.default,
+    user_1.default,
+    post_1.default,
+    job_1.default
+];
+exports.default = resolvers;
 //# sourceMappingURL=index.js.map

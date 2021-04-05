@@ -11,8 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const type_graphql_1 = require("type-graphql");
-class BaseEntity extends typeorm_1.BaseEntity {
-}
+let BaseEntity = class BaseEntity extends typeorm_1.BaseEntity {
+};
 __decorate([
     type_graphql_1.Field(),
     typeorm_1.PrimaryGeneratedColumn(),
@@ -21,12 +21,16 @@ __decorate([
 __decorate([
     type_graphql_1.Field(),
     typeorm_1.CreateDateColumn({ type: 'text' }),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], BaseEntity.prototype, "createdAt", void 0);
 __decorate([
     type_graphql_1.Field(),
     typeorm_1.UpdateDateColumn({ type: 'text' }),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], BaseEntity.prototype, "updatedAt", void 0);
+BaseEntity = __decorate([
+    typeorm_1.Entity(),
+    type_graphql_1.ObjectType()
+], BaseEntity);
 exports.default = BaseEntity;
 //# sourceMappingURL=BaseEntity.js.map

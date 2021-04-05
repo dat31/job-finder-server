@@ -1,5 +1,5 @@
-import DataLoader, { BatchLoadFn } from 'dataloader'
-import { Updoot } from "../entities/Updoot";
+import DataLoader from 'dataloader'
+import { Updoot } from "../entities";
 
 type Key = {
     postId: number

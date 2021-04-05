@@ -12,11 +12,9 @@ import {
     Root,
     UseMiddleware
 } from "type-graphql";
-import { Post } from "../entities/Post";
+import { Post, User, Updoot } from "../entities";
 import { Context } from "../types";
 import authMiddleware from "../middlewares/authMiddleware";
-import { Updoot } from "../entities/Updoot";
-import { User } from "../entities/User";
 
 @InputType()
 class PostInput {
@@ -87,41 +85,22 @@ export default class PostResolver {
             }
         } )
         if ( updoot && updoot.value !== value ) {
-            await Updoot.update(
-                { userId, postId },
-                { value }
-            )
+            await Updoot.update( { userId, postId }, { value } )
         } else {
-            await Updoot.insert( {
-                userId,
-                postId,
-                value
-            } )
+            await Updoot.insert( { userId, postId, value } )
         }
         const post = await Post.findOne( { id: postId } )
         if ( !post ) {
             return null
         }
-        await Post.update( {
-            id: postId
-        }, {
-            points: post.points + value,
-        } )
+        await Post.update( { id: postId }, { points: post.points + value, } )
         return { postId, value }
     }
 
     @Query( () => PaginatedPosts )
     async posts(
-        @Arg(
-            "top",
-            () => Int,
-            { nullable: true }
-        ) top: number | undefined = 10,
-        @Arg(
-            "skip",
-            () => Int,
-            { nullable: true }
-        ) skip: number | undefined = 0,
+        @Arg( "top", () => Int, { nullable: true } ) top: number | undefined = 10,
+        @Arg( "skip", () => Int, { nullable: true } ) skip: number | undefined = 0,
         @Ctx() ctx: Context,
     ): Promise<PaginatedPosts> {
         const [ result, total ] = await Post.findAndCount( {
@@ -147,10 +126,8 @@ export default class PostResolver {
         @Arg( "input" ) input: PostInput,
         @Ctx() ctx: Context
     ): Promise<Post> {
-        return Post.create( {
-            ...input,
-            creatorId: ctx.req.session.userId,
-        } ).save()
+        const post = { ...input, creatorId: ctx.req.session.userId }
+        return Post.create( post ).save()
     }
 
     @Mutation( () => Post, { nullable: true } )
@@ -195,7 +172,6 @@ export default class PostResolver {
         if ( post.creatorId !== userId ) {
             return null
         }
-        // await Updoot.delete( { postId: id } )
         await Post.delete( { id, creatorId: ctx.req.session.userId } )
         return id
     }

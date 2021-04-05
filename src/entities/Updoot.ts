@@ -5,15 +5,13 @@ import {
     CreateDateColumn,
     Entity,
     ManyToOne, PrimaryColumn,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn
 } from "typeorm";
-import { User } from "./User";
-import { Post } from "./Post";
+import User from "./User";
+import Post from "./Post";
 
 @ObjectType()
 @Entity()
-export class Updoot extends BaseEntity {
+export default class Updoot extends BaseEntity {
 
     @Field()
     @PrimaryColumn()
@@ -32,10 +30,7 @@ export class Updoot extends BaseEntity {
     user: User
 
     @Field( () => Post )
-    @ManyToOne(
-        () => Post,
-        post => post.updoots,
-        { onDelete: "CASCADE" } )
+    @ManyToOne( () => Post, post => post.updoots, { onDelete: "CASCADE" } )
     post: Post
 
     @Field()

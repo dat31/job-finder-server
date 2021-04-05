@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegisterInput = void 0;
 const type_graphql_1 = require("type-graphql");
-const User_1 = require("../entities/User");
+const entities_1 = require("../entities");
 const argon2_1 = __importDefault(require("argon2"));
 const constants_1 = require("../constants");
 const validateRegister_1 = __importDefault(require("../utils/validateRegister"));
@@ -70,8 +70,8 @@ __decorate([
     __metadata("design:type", Array)
 ], UserResponse.prototype, "errors", void 0);
 __decorate([
-    type_graphql_1.Field(() => User_1.User, { nullable: true }),
-    __metadata("design:type", User_1.User)
+    type_graphql_1.Field(() => entities_1.User, { nullable: true }),
+    __metadata("design:type", entities_1.User)
 ], UserResponse.prototype, "user", void 0);
 UserResponse = __decorate([
     type_graphql_1.ObjectType()
@@ -109,7 +109,7 @@ let UserResolver = class UserResolver {
                     };
                 }
                 const userIdInt = parseInt(userId);
-                const user = yield User_1.User.findOne(userIdInt);
+                const user = yield entities_1.User.findOne(userIdInt);
                 if (!user) {
                     return {
                         errors: [{
@@ -118,7 +118,7 @@ let UserResolver = class UserResolver {
                             }]
                     };
                 }
-                yield User_1.User.update({ id: userIdInt }, { password: yield argon2_1.default.hash(newPassword) });
+                yield entities_1.User.update({ id: userIdInt }, { password: yield argon2_1.default.hash(newPassword) });
                 req.session.userId = user.id;
                 yield redis.del(constants_1.FORGET_PASSWORD_PREFIX + token);
                 return { user };
@@ -138,7 +138,7 @@ let UserResolver = class UserResolver {
     }
     me(ctx) {
         const { userId } = ctx.req.session;
-        return userId ? User_1.User.findOne(userId) : null;
+        return userId ? entities_1.User.findOne(userId) : null;
     }
     register(options, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -150,7 +150,7 @@ let UserResolver = class UserResolver {
             }
             const hashedPassword = yield argon2_1.default.hash(password);
             try {
-                const result = yield User_1.User.create({
+                const result = yield entities_1.User.create({
                     username,
                     password: hashedPassword,
                     email
@@ -180,7 +180,7 @@ let UserResolver = class UserResolver {
     login(usernameOrEmail, password, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
             const column = usernameOrEmail.includes('@') ? 'email' : 'username';
-            const user = yield User_1.User.findOne({
+            const user = yield entities_1.User.findOne({
                 where: { [column]: usernameOrEmail }
             });
             if (!user) {
@@ -219,7 +219,7 @@ let UserResolver = class UserResolver {
     forgotPassword(email, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
             const { redis } = ctx;
-            const user = yield User_1.User.findOne({ where: { email } });
+            const user = yield entities_1.User.findOne({ where: { email } });
             if (!user) {
                 return true;
             }
@@ -236,7 +236,7 @@ __decorate([
     type_graphql_1.FieldResolver(() => String),
     __param(0, type_graphql_1.Root()), __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [User_1.User, Object]),
+    __metadata("design:paramtypes", [entities_1.User, Object]),
     __metadata("design:returntype", void 0)
 ], UserResolver.prototype, "email", null);
 __decorate([
@@ -249,7 +249,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "changePassword", null);
 __decorate([
-    type_graphql_1.Query(() => User_1.User, { nullable: true }),
+    type_graphql_1.Query(() => entities_1.User, { nullable: true }),
     __param(0, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -288,7 +288,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "forgotPassword", null);
 UserResolver = __decorate([
-    type_graphql_1.Resolver(User_1.User)
+    type_graphql_1.Resolver(entities_1.User)
 ], UserResolver);
 exports.default = UserResolver;
 //# sourceMappingURL=user.js.map

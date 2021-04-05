@@ -8,19 +8,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Post = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const User_1 = require("./User");
-const Updoot_1 = require("./Updoot");
-let Post = class Post extends typeorm_1.BaseEntity {
+const User_1 = __importDefault(require("./User"));
+const Updoot_1 = __importDefault(require("./Updoot"));
+const BaseEntity_1 = __importDefault(require("./BaseEntity"));
+let Post = class Post extends BaseEntity_1.default {
 };
-__decorate([
-    type_graphql_1.Field(() => type_graphql_1.Int),
-    typeorm_1.PrimaryGeneratedColumn(),
-    __metadata("design:type", Number)
-], Post.prototype, "id", void 0);
 __decorate([
     type_graphql_1.Field(),
     typeorm_1.Column(),
@@ -36,6 +34,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Post.prototype, "creatorId", void 0);
 __decorate([
+    type_graphql_1.Field(),
     typeorm_1.Column(),
     __metadata("design:type", String)
 ], Post.prototype, "text", void 0);
@@ -45,27 +44,17 @@ __decorate([
     __metadata("design:type", Number)
 ], Post.prototype, "points", void 0);
 __decorate([
-    type_graphql_1.Field(() => User_1.User),
-    typeorm_1.ManyToOne(() => User_1.User, user => user.posts),
-    __metadata("design:type", User_1.User)
+    type_graphql_1.Field(() => User_1.default),
+    typeorm_1.ManyToOne(() => User_1.default, user => user.posts),
+    __metadata("design:type", User_1.default)
 ], Post.prototype, "creator", void 0);
 __decorate([
-    typeorm_1.OneToMany(() => Updoot_1.Updoot, ud => ud.post),
+    typeorm_1.OneToMany(() => Updoot_1.default, ud => ud.post),
     __metadata("design:type", Array)
 ], Post.prototype, "updoots", void 0);
-__decorate([
-    type_graphql_1.Field(),
-    typeorm_1.CreateDateColumn(),
-    __metadata("design:type", Date)
-], Post.prototype, "createdAt", void 0);
-__decorate([
-    type_graphql_1.Field(),
-    typeorm_1.UpdateDateColumn(),
-    __metadata("design:type", Date)
-], Post.prototype, "updatedAt", void 0);
 Post = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()
 ], Post);
-exports.Post = Post;
+exports.default = Post;
 //# sourceMappingURL=Post.js.map

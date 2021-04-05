@@ -13,10 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dataloader_1 = __importDefault(require("dataloader"));
-const Updoot_1 = require("../entities/Updoot");
+const entities_1 = require("../entities");
 function batchLoadFn(keys) {
     return __awaiter(this, void 0, void 0, function* () {
-        const result = yield Updoot_1.Updoot.findByIds(keys);
+        const result = yield entities_1.Updoot.findByIds(keys);
         const map = new Map();
         result.forEach(e => {
             map.set(`${e.userId}_${e.postId}`, e);

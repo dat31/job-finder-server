@@ -1,3 +1,5 @@
+import { Container } from "typedi";
+
 require( 'dotenv' ).config()
 
 import 'reflect-metadata'
@@ -25,12 +27,7 @@ import {
         app.use( session( sessionConfig ) )
         const apolloServer = new ApolloServer( await getApolloServerConfig() );
         apolloServer.applyMiddleware( { app, cors: false } )
-        app.get( '/', ( req, res ) => {
-            res.send( 'hello' )
-        } )
-        app.listen( port, () => {
-            console.log( `listening port ${ port }` )
-        } )
+        app.listen( port )
     } catch ( e ) {
         console.log( '------APP ERROR------', e )
     }

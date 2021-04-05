@@ -1,6 +1,13 @@
-import { BaseEntity as ORMBaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Field } from "type-graphql";
+import {
+    BaseEntity as ORMBaseEntity,
+    CreateDateColumn, Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
+import { Field, ObjectType } from "type-graphql";
 
+@Entity()
+@ObjectType()
 export default abstract class BaseEntity extends ORMBaseEntity {
     @Field()
     @PrimaryGeneratedColumn()
@@ -8,9 +15,9 @@ export default abstract class BaseEntity extends ORMBaseEntity {
 
     @Field()
     @CreateDateColumn( { type: 'text' } )
-    createdAt: Date
+    createdAt: string
 
     @Field()
     @UpdateDateColumn( { type: 'text' } )
-    updatedAt: Date
+    updatedAt: string
 }

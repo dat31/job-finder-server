@@ -25,10 +25,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_graphql_1 = require("type-graphql");
-const Post_1 = require("../entities/Post");
+const entities_1 = require("../entities");
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
-const Updoot_1 = require("../entities/Updoot");
-const User_1 = require("../entities/User");
 let PostInput = class PostInput {
 };
 __decorate([
@@ -45,7 +43,7 @@ PostInput = __decorate([
 let PaginatedPosts = class PaginatedPosts {
 };
 __decorate([
-    type_graphql_1.Field(() => [Post_1.Post]),
+    type_graphql_1.Field(() => [entities_1.Post]),
     __metadata("design:type", Array)
 ], PaginatedPosts.prototype, "posts", void 0);
 __decorate([
@@ -73,7 +71,7 @@ let PostResolver = class PostResolver {
         return root.text.slice(0, 40);
     }
     creator(root) {
-        return User_1.User.findOne(root.creatorId);
+        return entities_1.User.findOne(root.creatorId);
     }
     voteStatus(root, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -91,38 +89,29 @@ let PostResolver = class PostResolver {
     vote(postId, value, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
             const { userId } = ctx.req.session;
-            const updoot = yield Updoot_1.Updoot.findOne({
+            const updoot = yield entities_1.Updoot.findOne({
                 where: {
                     postId,
                     userId
                 }
             });
             if (updoot && updoot.value !== value) {
-                yield Updoot_1.Updoot.update({ userId, postId }, { value });
+                yield entities_1.Updoot.update({ userId, postId }, { value });
             }
             else {
-                yield Updoot_1.Updoot.insert({
-                    userId,
-                    postId,
-                    value
-                });
+                yield entities_1.Updoot.insert({ userId, postId, value });
             }
-            const post = yield Post_1.Post.findOne({ id: postId });
+            const post = yield entities_1.Post.findOne({ id: postId });
             if (!post) {
                 return null;
             }
-            yield Post_1.Post.update({
-                id: postId
-            }, {
-                points: post.points + value,
-            });
+            yield entities_1.Post.update({ id: postId }, { points: post.points + value, });
             return { postId, value };
         });
     }
     posts(top = 10, skip = 0, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('POSTS_SESSION', ctx.req.session);
-            const [result, total] = yield Post_1.Post.findAndCount({
+            const [result, total] = yield entities_1.Post.findAndCount({
                 take: top || 0,
                 skip
             });
@@ -133,16 +122,17 @@ let PostResolver = class PostResolver {
         });
     }
     post(id) {
-        return Post_1.Post.findOne(id);
+        return entities_1.Post.findOne(id);
     }
     createPost(input, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Post_1.Post.create(Object.assign(Object.assign({}, input), { creatorId: ctx.req.session.userId })).save();
+            const post = Object.assign(Object.assign({}, input), { creatorId: ctx.req.session.userId });
+            return entities_1.Post.create(post).save();
         });
     }
     updatePost(id, title, text, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            const post = yield Post_1.Post.findOne(id, { relations: ["creator", "updoots"] });
+            const post = yield entities_1.Post.findOne(id, { relations: ["creator", "updoots"] });
             if (!post) {
                 return null;
             }
@@ -155,13 +145,13 @@ let PostResolver = class PostResolver {
             if (title === post.title && text === post.text) {
                 return null;
             }
-            yield Post_1.Post.update({ id }, { title, text });
+            yield entities_1.Post.update({ id }, { title, text });
             return Object.assign(Object.assign({}, post), { title, text });
         });
     }
     deletePost(id, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            const post = yield Post_1.Post.findOne(id);
+            const post = yield entities_1.Post.findOne(id);
             const { userId } = ctx.req.session;
             if (!post) {
                 return null;
@@ -169,7 +159,7 @@ let PostResolver = class PostResolver {
             if (post.creatorId !== userId) {
                 return null;
             }
-            yield Post_1.Post.delete({ id, creatorId: ctx.req.session.userId });
+            yield entities_1.Post.delete({ id, creatorId: ctx.req.session.userId });
             return id;
         });
     }
@@ -178,14 +168,14 @@ __decorate([
     type_graphql_1.FieldResolver(() => String),
     __param(0, type_graphql_1.Root()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Post_1.Post]),
+    __metadata("design:paramtypes", [entities_1.Post]),
     __metadata("design:returntype", void 0)
 ], PostResolver.prototype, "text", null);
 __decorate([
-    type_graphql_1.FieldResolver(() => User_1.User),
+    type_graphql_1.FieldResolver(() => entities_1.User),
     __param(0, type_graphql_1.Root()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Post_1.Post]),
+    __metadata("design:paramtypes", [entities_1.Post]),
     __metadata("design:returntype", void 0)
 ], PostResolver.prototype, "creator", null);
 __decorate([
@@ -193,7 +183,7 @@ __decorate([
     __param(0, type_graphql_1.Root()),
     __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Post_1.Post, Object]),
+    __metadata("design:paramtypes", [entities_1.Post, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "voteStatus", null);
 __decorate([
@@ -215,7 +205,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "posts", null);
 __decorate([
-    type_graphql_1.Query(() => Post_1.Post, { nullable: true }),
+    type_graphql_1.Query(() => entities_1.Post, { nullable: true }),
     __param(0, type_graphql_1.Arg('id', () => type_graphql_1.Int)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -223,7 +213,7 @@ __decorate([
 ], PostResolver.prototype, "post", null);
 __decorate([
     type_graphql_1.UseMiddleware(authMiddleware_1.default),
-    type_graphql_1.Mutation(() => Post_1.Post),
+    type_graphql_1.Mutation(() => entities_1.Post),
     __param(0, type_graphql_1.Arg("input")),
     __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
@@ -231,7 +221,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "createPost", null);
 __decorate([
-    type_graphql_1.Mutation(() => Post_1.Post, { nullable: true }),
+    type_graphql_1.Mutation(() => entities_1.Post, { nullable: true }),
     type_graphql_1.UseMiddleware(authMiddleware_1.default),
     __param(0, type_graphql_1.Arg("id", () => type_graphql_1.Int)),
     __param(1, type_graphql_1.Arg("title", () => String)),
@@ -251,7 +241,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "deletePost", null);
 PostResolver = __decorate([
-    type_graphql_1.Resolver(Post_1.Post)
+    type_graphql_1.Resolver(entities_1.Post)
 ], PostResolver);
 exports.default = PostResolver;
 //# sourceMappingURL=post.js.map

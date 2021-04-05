@@ -8,35 +8,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const Post_1 = require("./Post");
-const Updoot_1 = require("./Updoot");
-let User = class User extends typeorm_1.BaseEntity {
+const Post_1 = __importDefault(require("./Post"));
+const Updoot_1 = __importDefault(require("./Updoot"));
+const BaseEntity_1 = __importDefault(require("./BaseEntity"));
+let User = class User extends BaseEntity_1.default {
 };
 __decorate([
-    type_graphql_1.Field(),
-    typeorm_1.PrimaryGeneratedColumn(),
-    __metadata("design:type", Number)
-], User.prototype, "id", void 0);
-__decorate([
-    type_graphql_1.Field(),
-    typeorm_1.CreateDateColumn({ type: 'text' }),
-    __metadata("design:type", Date)
-], User.prototype, "createdAt", void 0);
-__decorate([
-    type_graphql_1.Field(),
-    typeorm_1.UpdateDateColumn({ type: 'text' }),
-    __metadata("design:type", Date)
-], User.prototype, "updatedAt", void 0);
-__decorate([
-    typeorm_1.OneToMany(() => Post_1.Post, post => post.creator),
+    typeorm_1.OneToMany(() => Post_1.default, post => post.creator),
     __metadata("design:type", Array)
 ], User.prototype, "posts", void 0);
 __decorate([
-    typeorm_1.OneToMany(() => Updoot_1.Updoot, ud => ud.userId),
+    typeorm_1.OneToMany(() => Updoot_1.default, ud => ud.userId),
     __metadata("design:type", Array)
 ], User.prototype, "updoots", void 0);
 __decorate([
@@ -57,5 +45,5 @@ User = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()
 ], User);
-exports.User = User;
+exports.default = User;
 //# sourceMappingURL=User.js.map

@@ -33,12 +33,7 @@ const configs_1 = require("./configs");
         app.use(express_session_1.default(configs_1.sessionConfig));
         const apolloServer = new apollo_server_express_1.ApolloServer(yield configs_1.getApolloServerConfig());
         apolloServer.applyMiddleware({ app, cors: false });
-        app.get('/', (req, res) => {
-            res.send('hello');
-        });
-        app.listen(port, () => {
-            console.log(`listening port ${port}`);
-        });
+        app.listen(port);
     }
     catch (e) {
         console.log('------APP ERROR------', e);
