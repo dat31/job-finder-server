@@ -5,5 +5,5 @@ import getApolloServerConfig from "./apolloServerConfig";
 export {
     connectionConfig,
     sessionConfig,
-    getApolloServerConfig
+    getApolloServerConfig,
 }

@@ -1,9 +1,9 @@
-import BaseEntity from "./BaseEntity";
+import BaseEntity from "../base/BaseEntity";
 import { Field, Int, ObjectType } from "type-graphql";
 import { Column, Entity, ManyToOne } from "typeorm";
 import Company from "./Company";
 
-enum EmploymentType {
+export enum EmploymentType {
     FULL_TIME = 'FULL_TIME',
     PART_TIME = 'PART_TIME'
 }
@@ -16,28 +16,35 @@ export default class Job extends BaseEntity {
     @Column()
     title: string
 
-    @Field()
-    @ManyToOne( () => Company, company => company.jobs )
+    @Field( () => Company )
+    @ManyToOne( () => Company, company => company.jobs, { onDelete: "CASCADE" } )
     company: Company
+
+    @Field( () => Int )
+    @Column()
+    companyId: Company['id']
 
     @Field()
     @Column()
     description: string
 
     @Field()
-    @Column( { type: 'enum', enum: EmploymentType } )
+    @Column( { type: 'enum', enum: EmploymentType, nullable: true } )
     employmentType: EmploymentType
 
-    @Field( () => [ Int ] )
+    @Field( () => String )
     @Column( { type: 'simple-array', nullable: true } )
     salary: number[]
 
     @Field( { nullable: true } )
-    @Column()
+    @Column( { nullable: true } )
     applicationDeadline: string
 
     @Field( () => Int, { nullable: true } )
-    @Column()
+    @Column( { nullable: true } )
     experience: number;
 
+    @Field( () => Int, { nullable: true } )
+    @Column( { nullable: true } )
+    viewCount: number
 }

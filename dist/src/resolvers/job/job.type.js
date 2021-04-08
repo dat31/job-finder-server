@@ -9,37 +9,108 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobArgs = exports.JobInput = exports.JobResponse = void 0;
+exports.UpdateJobArgs = exports.CreateJobArgs = exports.UpdateJobInput = exports.CreateJobInput = exports.ReportJobResponse = exports.DeleteJobResponse = exports.JobResponse = void 0;
 const type_graphql_1 = require("type-graphql");
 const entities_1 = require("../../entities");
-let JobResponse = class JobResponse {
+const base_1 = require("../../base");
+const Job_1 = require("../../entities/Job");
+let JobResponse = class JobResponse extends base_1.PaginatedResponse(entities_1.Job) {
 };
-__decorate([
-    type_graphql_1.Field(() => [entities_1.Job]),
-    __metadata("design:type", Array)
-], JobResponse.prototype, "jobs", void 0);
 JobResponse = __decorate([
     type_graphql_1.ObjectType()
 ], JobResponse);
 exports.JobResponse = JobResponse;
-let JobInput = class JobInput extends entities_1.Job {
+let DeleteJobResponse = class DeleteJobResponse {
 };
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], DeleteJobResponse.prototype, "deletedId", void 0);
+DeleteJobResponse = __decorate([
+    type_graphql_1.ObjectType()
+], DeleteJobResponse);
+exports.DeleteJobResponse = DeleteJobResponse;
+let ReportJobResponse = class ReportJobResponse {
+};
+__decorate([
+    type_graphql_1.Field(() => entities_1.Job),
+    __metadata("design:type", Object)
+], ReportJobResponse.prototype, "jobToReplace", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    __metadata("design:type", Object)
+], ReportJobResponse.prototype, "reportedJobId", void 0);
+ReportJobResponse = __decorate([
+    type_graphql_1.ObjectType()
+], ReportJobResponse);
+exports.ReportJobResponse = ReportJobResponse;
+let BaseJobInput = class BaseJobInput {
+};
+__decorate([
+    type_graphql_1.Field(() => String),
     __metadata("design:type", String)
-], JobInput.prototype, "asd", void 0);
-JobInput = __decorate([
+], BaseJobInput.prototype, "title", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], BaseJobInput.prototype, "description", void 0);
+__decorate([
+    type_graphql_1.Field({ nullable: true }),
+    __metadata("design:type", String)
+], BaseJobInput.prototype, "employmentType", void 0);
+__decorate([
+    type_graphql_1.Field(() => [type_graphql_1.Int], { nullable: true }),
+    __metadata("design:type", Array)
+], BaseJobInput.prototype, "salary", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], BaseJobInput.prototype, "applicationDeadline", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], BaseJobInput.prototype, "experience", void 0);
+BaseJobInput = __decorate([
     type_graphql_1.InputType()
-], JobInput);
-exports.JobInput = JobInput;
-let JobArgs = class JobArgs {
+], BaseJobInput);
+let CreateJobInput = class CreateJobInput extends BaseJobInput {
 };
 __decorate([
-    type_graphql_1.Field(() => JobInput),
-    __metadata("design:type", JobInput)
-], JobArgs.prototype, "jobInput", void 0);
-JobArgs = __decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    __metadata("design:type", Object)
+], CreateJobInput.prototype, "companyId", void 0);
+CreateJobInput = __decorate([
+    type_graphql_1.InputType()
+], CreateJobInput);
+exports.CreateJobInput = CreateJobInput;
+let UpdateJobInput = class UpdateJobInput extends BaseJobInput {
+};
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    __metadata("design:type", Object)
+], UpdateJobInput.prototype, "id", void 0);
+UpdateJobInput = __decorate([
+    type_graphql_1.InputType()
+], UpdateJobInput);
+exports.UpdateJobInput = UpdateJobInput;
+let CreateJobArgs = class CreateJobArgs {
+};
+__decorate([
+    type_graphql_1.Field(() => CreateJobInput),
+    __metadata("design:type", CreateJobInput)
+], CreateJobArgs.prototype, "createJobInput", void 0);
+CreateJobArgs = __decorate([
     type_graphql_1.ArgsType()
-], JobArgs);
-exports.JobArgs = JobArgs;
+], CreateJobArgs);
+exports.CreateJobArgs = CreateJobArgs;
+let UpdateJobArgs = class UpdateJobArgs {
+};
+__decorate([
+    type_graphql_1.Field(() => UpdateJobInput),
+    __metadata("design:type", UpdateJobInput)
+], UpdateJobArgs.prototype, "updateJobInput", void 0);
+UpdateJobArgs = __decorate([
+    type_graphql_1.ArgsType()
+], UpdateJobArgs);
+exports.UpdateJobArgs = UpdateJobArgs;
 //# sourceMappingURL=job.type.js.map

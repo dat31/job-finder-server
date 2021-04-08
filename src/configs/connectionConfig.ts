@@ -1,6 +1,5 @@
 import { IS_PRODUCTION } from "../constants";
-import { Post, Updoot, User, Job, Company } from "../entities";
-import path from "path";
+import { Post, Updoot, User, Job, Company, CompanyReview } from "../entities";
 import { ConnectionOptions } from "typeorm";
 
 const connectionConfig = {
@@ -17,8 +16,7 @@ const connectionConfig = {
     password: '123',
     logging: true,
     synchronize: true,
-    entities: [ Post, Job, Company, Updoot, User ],
-    migrations: [ path.join( __dirname, "./migrations/*" ) ],
+    entities: [ Post, Job, Company, Updoot, User, CompanyReview ],
 }
 
 export default connectionConfig as ConnectionOptions

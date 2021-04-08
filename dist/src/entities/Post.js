@@ -16,7 +16,7 @@ const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const User_1 = __importDefault(require("./User"));
 const Updoot_1 = __importDefault(require("./Updoot"));
-const BaseEntity_1 = __importDefault(require("./BaseEntity"));
+const BaseEntity_1 = __importDefault(require("../base/BaseEntity"));
 let Post = class Post extends BaseEntity_1.default {
 };
 __decorate([

@@ -1,5 +1,5 @@
 import { COOKIE_NAME, IS_PRODUCTION } from "../constants";
-import session, { SessionOptions } from "express-session";
+import { SessionOptions } from "express-session";
 import { sessionStore } from "./redisConfig";
 
 const sessionConfig: SessionOptions = {

@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import User from "./User";
 import Updoot from "./Updoot";
-import BaseEntity from "./BaseEntity";
+import BaseEntity from "../base/BaseEntity";
 
 @ObjectType()
 @Entity()

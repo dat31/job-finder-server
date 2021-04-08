@@ -16,7 +16,12 @@ const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const Post_1 = __importDefault(require("./Post"));
 const Updoot_1 = __importDefault(require("./Updoot"));
-const BaseEntity_1 = __importDefault(require("./BaseEntity"));
+const BaseEntity_1 = __importDefault(require("../base/BaseEntity"));
+var Roles;
+(function (Roles) {
+    Roles["COMPANY"] = "COMPANY";
+    Roles["CANDIDATE"] = "CANDIDATE";
+})(Roles || (Roles = {}));
 let User = class User extends BaseEntity_1.default {
 };
 __decorate([
@@ -41,6 +46,14 @@ __decorate([
     typeorm_1.Column(),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
+__decorate([
+    typeorm_1.Column("int", { array: true, nullable: true }),
+    __metadata("design:type", Array)
+], User.prototype, "savedJobIds", void 0);
+__decorate([
+    typeorm_1.Column("int", { array: true, nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "notInterestedJobIds", void 0);
 User = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()

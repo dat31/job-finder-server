@@ -12,7 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const BaseEntity_1 = __importDefault(require("./BaseEntity"));
+exports.EmploymentType = void 0;
+const BaseEntity_1 = __importDefault(require("../base/BaseEntity"));
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const Company_1 = __importDefault(require("./Company"));
@@ -20,7 +21,7 @@ var EmploymentType;
 (function (EmploymentType) {
     EmploymentType["FULL_TIME"] = "FULL_TIME";
     EmploymentType["PART_TIME"] = "PART_TIME";
-})(EmploymentType || (EmploymentType = {}));
+})(EmploymentType = exports.EmploymentType || (exports.EmploymentType = {}));
 let Job = class Job extends BaseEntity_1.default {
 };
 __decorate([
@@ -29,10 +30,15 @@ __decorate([
     __metadata("design:type", String)
 ], Job.prototype, "title", void 0);
 __decorate([
-    type_graphql_1.Field(),
-    typeorm_1.ManyToOne(() => Company_1.default, company => company.jobs),
+    type_graphql_1.Field(() => Company_1.default),
+    typeorm_1.ManyToOne(() => Company_1.default, company => company.jobs, { onDelete: "CASCADE" }),
     __metadata("design:type", Company_1.default)
 ], Job.prototype, "company", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int),
+    typeorm_1.Column(),
+    __metadata("design:type", Object)
+], Job.prototype, "companyId", void 0);
 __decorate([
     type_graphql_1.Field(),
     typeorm_1.Column(),
@@ -40,24 +46,29 @@ __decorate([
 ], Job.prototype, "description", void 0);
 __decorate([
     type_graphql_1.Field(),
-    typeorm_1.Column({ type: 'enum', enum: EmploymentType }),
+    typeorm_1.Column({ type: 'enum', enum: EmploymentType, nullable: true }),
     __metadata("design:type", String)
 ], Job.prototype, "employmentType", void 0);
 __decorate([
-    type_graphql_1.Field(() => [type_graphql_1.Int]),
+    type_graphql_1.Field(() => String),
     typeorm_1.Column({ type: 'simple-array', nullable: true }),
     __metadata("design:type", Array)
 ], Job.prototype, "salary", void 0);
 __decorate([
     type_graphql_1.Field({ nullable: true }),
-    typeorm_1.Column(),
+    typeorm_1.Column({ nullable: true }),
     __metadata("design:type", String)
 ], Job.prototype, "applicationDeadline", void 0);
 __decorate([
     type_graphql_1.Field(() => type_graphql_1.Int, { nullable: true }),
-    typeorm_1.Column(),
+    typeorm_1.Column({ nullable: true }),
     __metadata("design:type", Number)
 ], Job.prototype, "experience", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int, { nullable: true }),
+    typeorm_1.Column({ nullable: true }),
+    __metadata("design:type", Number)
+], Job.prototype, "viewCount", void 0);
 Job = __decorate([
     typeorm_1.Entity(),
     type_graphql_1.ObjectType()

@@ -1,4 +1,4 @@
-import { Container } from "typedi";
+import path from "path";
 
 require( 'dotenv' ).config()
 
@@ -14,10 +14,17 @@ import {
     sessionConfig
 } from "./configs";
 
-( async () => {
+
+// const GEO_IP_API_KEY = "78090704917faeb36915443852bc5c55"
+//        "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
+( async function() {
     try {
         const port = parseInt( process.env.PORT as string )
-        await createConnection( connectionConfig )
+        const conn = await createConnection( {
+            ...connectionConfig,
+            migrations: [ path.join( __dirname, "./migrations/*" ) ],
+        } )
+        // await conn.runMigrations()
         const app = express()
         app.use( cors( {
             origin: process.env.CORS_ORIGIN,
@@ -28,11 +35,13 @@ import {
         const apolloServer = new ApolloServer( await getApolloServerConfig() );
         apolloServer.applyMiddleware( { app, cors: false } )
         app.listen( port )
-    } catch ( e ) {
+    } catch( e ) {
         console.log( '------APP ERROR------', e )
     }
 } )();
 
-process.on( 'uncaughtException', ( err ) => {
-    console.log( '-----UN_CAUGHT_EXCEPTION-----', err );
-} );
+function handleUnCaughtException( error: Error ) {
+    console.log( '-----UN_CAUGHT_EXCEPTION-----', error );
+}
+
+process.on( 'uncaughtException', handleUnCaughtException );

@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "type-graphql";
+import { Authorized, Field, ObjectType } from "type-graphql";
 import {
     Column,
     Entity,
@@ -6,7 +6,12 @@ import {
 } from "typeorm";
 import Post from "./Post";
 import Updoot from "./Updoot";
-import BaseEntity from "./BaseEntity";
+import BaseEntity from "../base/BaseEntity";
+
+enum Roles {
+    COMPANY = "COMPANY",
+    CANDIDATE = "CANDIDATE"
+}
 
 @ObjectType()
 @Entity()
@@ -28,5 +33,11 @@ export default class User extends BaseEntity {
 
     @Column()
     password!: string;
+
+    @Column( "int", { array: true, nullable: true } )
+    savedJobIds: number[]
+
+    @Column( "int", { array: true, nullable: true } )
+    notInterestedJobIds: number[] | null | undefined
 
 }

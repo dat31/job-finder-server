@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const BaseEntity_1 = __importDefault(require("./BaseEntity"));
+const BaseEntity_1 = __importDefault(require("../base/BaseEntity"));
 const typeorm_1 = require("typeorm");
 const type_graphql_1 = require("type-graphql");
 const Job_1 = __importDefault(require("./Job"));
+const CompanyReview_1 = __importDefault(require("./CompanyReview"));
 var Industry;
 (function (Industry) {
     Industry["INDUSTRY1"] = "INDUSTRY1";
@@ -35,14 +36,19 @@ __decorate([
 ], Company.prototype, "location", void 0);
 __decorate([
     type_graphql_1.Field(),
-    typeorm_1.Column({ type: 'enum', enum: Industry }),
+    typeorm_1.Column({ type: 'enum', enum: Industry, nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "industry", void 0);
 __decorate([
-    type_graphql_1.Field(() => Job_1.default),
+    type_graphql_1.Field(() => Job_1.default, { nullable: true }),
     typeorm_1.OneToMany(() => Job_1.default, job => job.company),
     __metadata("design:type", Array)
 ], Company.prototype, "jobs", void 0);
+__decorate([
+    type_graphql_1.Field(() => CompanyReview_1.default, { nullable: true }),
+    typeorm_1.OneToMany(() => CompanyReview_1.default, review => review.company),
+    __metadata("design:type", Array)
+], Company.prototype, "reviews", void 0);
 Company = __decorate([
     typeorm_1.Entity(),
     type_graphql_1.ObjectType()
