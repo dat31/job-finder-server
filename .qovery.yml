@@ -1,0 +1,18 @@
+---
+application:
+  name: "job-finder-server"
+  project: "job-finder-server"
+  organization: "QoveryCommunity"
+databases:
+- type: "POSTGRESQL"
+  name: "job-finder-pg-db"
+  version: "12"
+- type: "REDIS"
+  name: "job-finder-redis-db"
+  version: "6"
+routers:
+- name: "main-job-finder-server"
+  routes:
+  - application_name: "job-finder-server"
+    paths:
+    - "/*"
