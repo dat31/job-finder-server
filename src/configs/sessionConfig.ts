@@ -10,7 +10,7 @@ const sessionConfig: SessionOptions = {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
         httpOnly: true,
         sameSite: 'lax',
-        secure: IS_PRODUCTION,
+        // secure: IS_PRODUCTION,
     },
     secret: process.env.SESSION_SECRET as string,
     resave: false

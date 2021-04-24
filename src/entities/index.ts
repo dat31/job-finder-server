@@ -1,15 +1,15 @@
 import Job from "./Job";
-import Post from './Post'
 import User from './User'
 import Company from "./Company";
-import Updoot from './Updoot'
 import CompanyReview from "./CompanyReview";
+import WorkSkill from "./WorkSkill";
+import WorkExperience from "./WorkExperience";
 
 export {
     Job,
-    Post,
     User,
     Company,
-    Updoot,
-    CompanyReview
+    CompanyReview,
+    WorkSkill,
+    WorkExperience
 }

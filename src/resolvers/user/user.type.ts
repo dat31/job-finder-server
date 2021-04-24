@@ -1,5 +1,5 @@
-import { Field, InputType, ObjectType } from "type-graphql";
-import { User } from "../../entities";
+import { ArgsType, Field, InputType, ObjectType } from "type-graphql";
+import { Job, User, WorkExperience, WorkSkill } from "../../entities";
 
 @InputType()
 export class RegisterInput {
@@ -29,4 +29,40 @@ export class UserResponse {
 
     @Field( () => User, { nullable: true } )
     user?: User
+}
+
+@ObjectType()
+export class ProfileResponse {
+    @Field( () => [ WorkExperience ], { nullable: true } )
+    workExperiences: WorkExperience[]
+
+    @Field( () => [ WorkSkill ], { nullable: true } )
+    workSkills: WorkSkill[]
+}
+
+@ObjectType()
+export class CurrentUserJobs {
+    @Field( () => [ Job ], { nullable: true } )
+    savedJobs: Job[]
+
+    @Field( () => [ Job ], { nullable: true } )
+    appliedJobs: Job[]
+}
+
+@ArgsType()
+export class LoginReq {
+    @Field()
+    usernameOrEmail: string
+
+    @Field()
+    password: string
+}
+
+@ArgsType()
+export class ChangePasswordReq {
+    @Field()
+    token: string
+
+    @Field()
+    newPassword: string
 }

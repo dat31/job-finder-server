@@ -1,14 +1,14 @@
-import { Authorized, Field, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from "type-graphql";
 import {
     Column,
     Entity,
     OneToMany
 } from "typeorm";
-import Post from "./Post";
-import Updoot from "./Updoot";
 import BaseEntity from "../base/BaseEntity";
+import WorkExperience from "./WorkExperience";
+import WorkSkill from "./WorkSkill";
 
-enum Roles {
+enum UserRole {
     COMPANY = "COMPANY",
     CANDIDATE = "CANDIDATE"
 }
@@ -16,12 +16,6 @@ enum Roles {
 @ObjectType()
 @Entity()
 export default class User extends BaseEntity {
-
-    @OneToMany( () => Post, post => post.creator )
-    posts: Post[]
-
-    @OneToMany( () => Updoot, ud => ud.userId )
-    updoots: Updoot[]
 
     @Field()
     @Column( { unique: true } )
@@ -34,10 +28,33 @@ export default class User extends BaseEntity {
     @Column()
     password!: string;
 
-    @Column( "int", { array: true, nullable: true } )
+    @Field( () => [ Int ], { nullable: true } )
+    @Column( "int", {
+        array: true,
+        nullable: true
+    } )
     savedJobIds: number[]
 
-    @Column( "int", { array: true, nullable: true } )
+    @Field( () => [ Int ], { nullable: true } )
+    @Column( "int", {
+        array: true,
+        nullable: true
+    } )
     notInterestedJobIds: number[] | null | undefined
+
+    @Field( () => [ Int ], { nullable: true } )
+    @Column( "int", {
+        array: true,
+        nullable: true,
+    } )
+    reportedJobIds: number[] | null | undefined
+
+    @Field( () => [ WorkExperience ] )
+    @OneToMany( () => WorkExperience, workExp => workExp.userId )
+    workExperiences: WorkExperience[]
+
+    @Field( () => [ WorkSkill ] )
+    @OneToMany( () => WorkSkill, workSkill => workSkill.userId )
+    workSkills: WorkSkill[]
 
 }

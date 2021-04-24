@@ -1,18 +1,14 @@
 import { Request, Response } from "express";
 import { Redis } from "ioredis";
-import { voteStatusLoader } from "./loader";
 
 export type Context = {
     req: Request & {
         session: Request["session"] & {
-            userId: number
-            test1: any,
-            test2: any
+            userId?: number
         }
     },
     redis: Redis
     res: Response
-    voteStatusLoader: typeof voteStatusLoader
 }
 
 export type GeoPluginResponse = {

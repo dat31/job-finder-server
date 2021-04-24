@@ -1,11 +1,10 @@
 import { Service } from "typedi";
 import BaseEntity from "./BaseEntity";
-import { DeepPartial, FindManyOptions, Repository } from "typeorm";
+import { DeepPartial, FindManyOptions, Repository, UpdateResult } from "typeorm";
 import { PaginatedResponse } from "./index";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { ObjectID } from "typeorm/driver/mongodb/typings";
 import { FindConditions } from "typeorm/find-options/FindConditions";
-import { FindOneOptions } from "typeorm/find-options/FindOneOptions";
 
 type PaginatedResponse<T> = {
     items: T[],
@@ -39,14 +38,11 @@ export default abstract class BaseService<TEntity extends BaseEntity> {
         }
     }
 
-    findOne(
-        conditions?: FindConditions<TEntity>,
-        options?: FindOneOptions<TEntity>
-    ): Promise<TEntity | undefined> {
-        return this.repository.findOne( conditions, options )
+    getRepository(): Repository<TEntity> {
+        return this.repository
     }
 
-    getById( id: TEntity['id'] ): Promise<TEntity | undefined> {
+    getById( id?: TEntity['id'] ): Promise<TEntity | undefined> {
         return this.repository.findOne( id )
     }
 
@@ -55,7 +51,7 @@ export default abstract class BaseService<TEntity extends BaseEntity> {
     }
 
     update(
-        criteria: Criteria<TEntity>,
+        criteria: Criteria<TEntity> | number,
         partialEntity: QueryDeepPartialEntity<TEntity>
     ): Promise<QueryDeepPartialEntity<TEntity>> {
         return this.repository
@@ -63,13 +59,23 @@ export default abstract class BaseService<TEntity extends BaseEntity> {
             .then( () => partialEntity )
     }
 
-    delete( criteria: Criteria<TEntity> ): Promise<{ deletedId: number }> {
+    async updateBasedOnPrevious(
+        id: number,
+        updateFn: ( previousValue: TEntity ) => QueryDeepPartialEntity<TEntity>
+    ): Promise<UpdateResult> {
+        const value = await this.repository.findOne( id )
+        if( value ) {
+            return this.repository.update( id, updateFn( value ) )
+        }
+        return Promise.reject()
+    }
+
+    delete( criteria: Criteria<TEntity> ): Promise<number> {
         return this.repository
             .delete( criteria )
-            .then( () => ( {
-                deletedId: ( criteria as any ).id
-                    ? ( criteria as any ).id
-                    : criteria
-            } ) )
+            .then( () => ( criteria as any ).id
+                ? ( criteria as any ).id
+                : criteria
+            )
     }
 }

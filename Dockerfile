@@ -8,6 +8,8 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package.json ./
 COPY yarn.lock ./
+COPY .env.development ./
+COPY .env.production ./
 
 ENV NODE_ENV production
 RUN yarn install

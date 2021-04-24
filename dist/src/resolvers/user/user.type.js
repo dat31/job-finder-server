@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserResponse = exports.ErrorField = exports.RegisterInput = void 0;
+exports.ProfileResponse = exports.UserResponse = exports.ErrorField = exports.RegisterInput = void 0;
 const type_graphql_1 = require("type-graphql");
 const entities_1 = require("../../entities");
 let RegisterInput = class RegisterInput {
@@ -58,4 +58,18 @@ UserResponse = __decorate([
     type_graphql_1.ObjectType()
 ], UserResponse);
 exports.UserResponse = UserResponse;
+let ProfileResponse = class ProfileResponse {
+};
+__decorate([
+    type_graphql_1.Field(() => [entities_1.WorkExperience], { nullable: true }),
+    __metadata("design:type", Array)
+], ProfileResponse.prototype, "workExperiences", void 0);
+__decorate([
+    type_graphql_1.Field(() => [entities_1.WorkSkill], { nullable: true }),
+    __metadata("design:type", Array)
+], ProfileResponse.prototype, "workSkills", void 0);
+ProfileResponse = __decorate([
+    type_graphql_1.ObjectType()
+], ProfileResponse);
+exports.ProfileResponse = ProfileResponse;
 //# sourceMappingURL=user.type.js.map

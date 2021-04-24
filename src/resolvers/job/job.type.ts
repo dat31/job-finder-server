@@ -10,18 +10,20 @@ export class JobResponse extends PaginatedResponse( Job ) {
 }
 
 @ObjectType()
-export class DeleteJobResponse {
-    @Field( () => Int, { nullable: true } )
-    deletedId: number
-}
-
-@ObjectType()
 export class ReportJobResponse {
     @Field( () => Job )
     jobToReplace: Job | undefined
 
     @Field( () => Int )
     reportedJobId: Job["id"]
+}
+
+@ObjectType()
+export class CategoriesResponse {
+    @Field()
+    title: string
+    @Field()
+    numberOfJobs: string
 }
 
 @InputType()

@@ -25,11 +25,20 @@ export default class Job extends BaseEntity {
     companyId: Company['id']
 
     @Field()
-    @Column()
+    @Column( { nullable: true } )
     description: string
 
+    @Field( { nullable: true } )
+    @Column( { nullable: true } )
+    requirements: string
+
     @Field()
-    @Column( { type: 'enum', enum: EmploymentType, nullable: true } )
+    @Column( {
+        type: 'enum',
+        enum: EmploymentType,
+        nullable: true,
+        default: EmploymentType.FULL_TIME,
+    } )
     employmentType: EmploymentType
 
     @Field( () => String )
@@ -47,4 +56,10 @@ export default class Job extends BaseEntity {
     @Field( () => Int, { nullable: true } )
     @Column( { nullable: true } )
     viewCount: number
+
+    @Field()
+    hasBeenSaved: boolean
+
+    @Field()
+    hasBeenReported: boolean
 }

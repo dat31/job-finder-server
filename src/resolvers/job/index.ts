@@ -1,19 +1,11 @@
-import { Arg, Args, Authorized, Ctx, FieldResolver, Int, Mutation, Query, Resolver, Root } from "type-graphql";
+import { Arg, Args, Authorized, Ctx, Field, FieldResolver, Int, Mutation, Query, Resolver, Root } from "type-graphql";
 import { Company, Job } from "../../entities";
-import { CreateJobArgs, DeleteJobResponse, JobResponse, ReportJobResponse, UpdateJobArgs } from "./job.type";
+import { CategoriesResponse, CreateJobArgs, JobResponse, ReportJobResponse, UpdateJobArgs } from "./job.type";
 import JobService from "./job.service";
 import { Service } from "typedi";
-import { companyLoader } from "../../loader";
-import { Equal, FindManyOptions, In, Like, Not } from "typeorm";
+import { companyLoader, createJobSaveStatusLoader } from "../../loader";
 import { Context } from "../../types";
 import UserService from "../user/user.service";
-import { EntityFieldsNames } from "typeorm/common/EntityFieldsNames";
-import { FindConditions } from "typeorm/find-options/FindConditions";
-import { ObjectLiteral } from "typeorm/common/ObjectLiteral";
-import { Redis } from "ioredis";
-
-const LIMIT_DISPLAY_JOBS = 6
-const ALREADY_DISPLAYED_JOB_IDS = "ALREADY_DISPLAYED_JOB_IDS"
 
 @Service()
 @Resolver( Job )
@@ -26,19 +18,23 @@ export default class JobResolver {
     }
 
     @FieldResolver( () => Company )
-    company( @Root() job: Job ) {
+    company( @Root() job: Job ): Promise<Company> {
         return companyLoader.load( job.companyId )
     }
 
+    @FieldResolver( () => Boolean )
+    hasBeenSaved( @Root() job: Job, @Ctx() ctx: Context ): Promise<boolean> {
+        return createJobSaveStatusLoader( ctx.req.session.userId ).load( job.id )
+    }
+
+    @FieldResolver( () => Boolean )
+    hasBeenReported( @Root() job: Job ) {
+        return false
+    }
+
     @FieldResolver( () => String, { nullable: true } )
-    salary( @Root() job: Job ) {
-        const { salary } = job || {}
-        if( Array.isArray( salary ) && salary.length > 0 ) {
-            return salary.length === 2
-                ? `${ salary[0] } - ${ salary[1] }`
-                : `Upto ${ salary[0] }`
-        }
-        return "Offer"
+    salary( @Root() job: Job ): string {
+        return this.jobService.getSalary( job?.salary )
     }
 
     @Mutation( () => Job, )
@@ -51,6 +47,13 @@ export default class JobResolver {
         return this.jobService.update( updateJobInput.id, updateJobInput as Job )
     }
 
+    @Authorized()
+    @Mutation( () => Int, { nullable: true } )
+    async saveJob( @Ctx() ctx: Context,
+                   @Arg( "jobId", () => Int ) jobId: number ): Promise<number | null> {
+        return this.jobService.saveJob( ctx.req.session.userId, jobId )
+    }
+
     /**
      * @description after report job, replace that job by another one
      */
@@ -60,99 +63,49 @@ export default class JobResolver {
         @Ctx() ctx: Context,
         @Arg( "jobId", () => Int ) jobId: number
     ): Promise<ReportJobResponse> {
-        const alreadyDisplayedJobIds = await this.getHasDisplayedJobIds( ctx.redis )
-        const notInIds = ( alreadyDisplayedJobIds ? alreadyDisplayedJobIds : [] ).concat( [ jobId ] )
-        const jobToReplace = await this.jobService.findOne( {
-            id: Not( In( notInIds ) )
-        } )
-        return {
-            jobToReplace,
-            reportedJobId: jobId
-        }
+        return this.jobService.reportJob( ctx.req.session.userId, jobId )
     }
 
     @Query( () => JobResponse, { nullable: true } )
     async jobs( @Ctx() ctx: Context ): Promise<JobResponse | null> {
-        return this.jobService.getAll( await this.getFindCondition( ctx ) );
+        return this.jobService.getAllJobs( ctx.req.session.userId )
     }
 
-    @Query( () => JobResponse )
-    async hottestJob( @Ctx() ctx: Context ): Promise<JobResponse | null> {
-        return await this.jobService.getAll(
-            await this.getFindCondition( ctx, { viewCount: "DESC" } )
-        )
+    @Query( () => [ Job ] )
+    async hottestJob( @Ctx() ctx: Context ): Promise<Job[] | null> {
+        console.log( "HOTTEST JOB RESOLVER", ctx.req.session.userId )
+        return this.jobService.getHottestJobs( ctx.req.session.userId )
     }
 
-    @Query( () => JobResponse )
-    async newestJob( @Ctx() ctx: Context ): Promise<JobResponse> {
-        return this.jobService.getAll(
-            await this.getFindCondition( ctx, { createdAt: "DESC" } )
-        )
+    @Query( () => [ Job ] )
+    async newestJob( @Ctx() ctx: Context ): Promise<Job[]> {
+        return this.jobService.getNewestJobs( ctx.req.session.userId )
     }
 
-    @Query( () => JobResponse )
+    @Query( () => [ Job ] )
     async relatedJobs(
         @Ctx() ctx: Context,
-        @Arg( "currentJobId", () => Int ) currentJobId: string,
+        @Arg( "currentJobId", () => Int ) currentJobId: number,
         @Arg( "companyId", () => Int ) companyId: number,
         @Arg( "jobCategory", () => String ) jobCategory: string,
-    ): Promise<JobResponse> {
-        return this.jobService.getAll(
-            await this.getFindCondition( ctx, undefined, undefined, {
-                title: Like( jobCategory ),
-                companyId: Equal( companyId ),
-                id: Not( Equal( currentJobId ) )
-            } )
-        )
+    ): Promise<Job[]> {
+        return this.jobService.getRelatedJobs( ctx.req.session.userId, jobCategory, currentJobId )
+    }
+
+    @Query( () => [ CategoriesResponse ] )
+    hottestCategories(): Promise<CategoriesResponse[]> {
+        return this.jobService.getHottestCategories()
     }
 
     @Authorized( "ADMIN" )
-    @Mutation( () => DeleteJobResponse )
-    deleteJob( @Arg( "id", () => Int ) id: number ): Promise<DeleteJobResponse> {
+    @Mutation( () => Int )
+    deleteJob( @Arg( "id", () => Int ) id: number ): Promise<number> {
         return this.jobService.delete( id )
     }
 
     @Query( () => Job, { nullable: true } )
     job( @Arg( "id", () => Int ) id: number ): Promise<Job | undefined> {
         return this.jobService.getById( id )
-    }
-
-    private async getFindCondition(
-        ctx: Context,
-        order?: { [P in EntityFieldsNames<Job>]?: "ASC" | "DESC" | 1 | -1; },
-        take: number = LIMIT_DISPLAY_JOBS,
-        where: FindConditions<Job>[] | FindConditions<Job> | ObjectLiteral = {}
-    ): Promise<FindManyOptions<Job> | undefined> {
-        const user = await this.userService.getById( ctx?.req.session.userId )
-        const { notInterestedJobIds = [] } = user || {}
-        if( !notInterestedJobIds || notInterestedJobIds.length <= 0 ) {
-            return ( { order, take } )
-        }
-        return ( {
-            order,
-            take,
-            where: { id: Not( In( notInterestedJobIds ) ), ...where }
-        } )
-    }
-
-    private parseJson<T>( json: string | null ): T | null {
-        if( json ) {
-            return JSON.parse( json )
-        }
-        return null
-    }
-
-    private async setHasDisplayedJobIds( redis: Redis, value: any ): Promise<void> {
-        try {
-            await redis.set( ALREADY_DISPLAYED_JOB_IDS, JSON.stringify( value ) )
-        } catch( _ ) {
-            return Promise.resolve()
-        }
-    }
-
-    private async getHasDisplayedJobIds( redis: Redis ): Promise<Job["id"][] | null> {
-        const hasDisplayedJobIds = await redis.get( ALREADY_DISPLAYED_JOB_IDS )
-        return this.parseJson<Job["id"][]>( hasDisplayedJobIds )
     }
 
 }

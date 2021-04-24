@@ -1,17 +1,19 @@
 import HelloResolver from './hello'
 import UserResolver from './user'
-import PostResolver from './post'
 import JobResolver from "./job";
+import WorkExperienceResolver from "./workexperience";
+import CompanyResolver from "./company";
+import WorkSkillResolver from "./workskill";
 
 import { NonEmptyArray } from "type-graphql";
-import CompanyResolver from "./company";
 
 const resolvers: NonEmptyArray<Function> | NonEmptyArray<string> = [
     HelloResolver,
     UserResolver,
-    PostResolver,
     JobResolver,
     CompanyResolver,
+    WorkExperienceResolver,
+    WorkSkillResolver
 ]
 
 export default resolvers

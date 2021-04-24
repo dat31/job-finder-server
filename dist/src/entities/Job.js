@@ -41,12 +41,22 @@ __decorate([
 ], Job.prototype, "companyId", void 0);
 __decorate([
     type_graphql_1.Field(),
-    typeorm_1.Column(),
+    typeorm_1.Column({ nullable: true }),
     __metadata("design:type", String)
 ], Job.prototype, "description", void 0);
 __decorate([
+    type_graphql_1.Field({ nullable: true }),
+    typeorm_1.Column({ nullable: true }),
+    __metadata("design:type", String)
+], Job.prototype, "requirements", void 0);
+__decorate([
     type_graphql_1.Field(),
-    typeorm_1.Column({ type: 'enum', enum: EmploymentType, nullable: true }),
+    typeorm_1.Column({
+        type: 'enum',
+        enum: EmploymentType,
+        nullable: true,
+        default: EmploymentType.FULL_TIME,
+    }),
     __metadata("design:type", String)
 ], Job.prototype, "employmentType", void 0);
 __decorate([

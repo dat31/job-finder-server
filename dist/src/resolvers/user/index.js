@@ -36,11 +36,15 @@ const user_service_1 = __importDefault(require("./user.service"));
 const authMiddleware_1 = __importDefault(require("../../middlewares/authMiddleware"));
 const user_helper_1 = require("./user.helper");
 const sendEmail_1 = __importDefault(require("../../api/sendEmail"));
+const workexp_service_1 = __importDefault(require("../workexperience/workexp.service"));
+const workskill_service_1 = __importDefault(require("../workskill/workskill.service"));
 const DB_DUPLICATE_ERR_CODE = '23505';
 const PASSWORD_LIMIT_LENGTH = 6;
 let UserResolver = class UserResolver {
-    constructor(userService) {
+    constructor(userService, workExpService, workSkillService) {
         this.userService = userService;
+        this.workExpService = workExpService;
+        this.workSkillService = workSkillService;
     }
     email(user, ctx) {
         return (ctx.req.session.userId === user.id) ? user.email : null;
@@ -71,12 +75,22 @@ let UserResolver = class UserResolver {
             }
         });
     }
-    me(ctx) {
+    currentUser(ctx) {
         const { userId } = ctx.req.session;
-        console.log("OKAY", ctx.req.session);
         if (!userId)
             return null;
         return entities_1.User.findOne(userId);
+    }
+    profile(ctx) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { userId } = ctx.req.session;
+            if (!userId)
+                return null;
+            return {
+                workExperiences: yield this.workExpService.getRepository().find({ userId }),
+                workSkills: yield this.workSkillService.getRepository().find({ userId })
+            };
+        });
     }
     register(options, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -116,8 +130,7 @@ let UserResolver = class UserResolver {
                 return this.getError('password', 'incorrect password');
             }
             ctx.req.session.userId = user.id;
-            ctx.req.session.test1 = "test1";
-            ctx.req.session.test2 = "test2";
+            console.log(ctx.req.session.userId);
             return {
                 user
             };
@@ -159,6 +172,9 @@ let UserResolver = class UserResolver {
     }
     updateJobIdColumn(userId, jobId, jobColumn) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!userId) {
+                return false;
+            }
             const user = yield this.userService.getById(userId);
             if (!user) {
                 return false;
@@ -197,7 +213,14 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], UserResolver.prototype, "me", null);
+], UserResolver.prototype, "currentUser", null);
+__decorate([
+    type_graphql_1.Query(() => user_type_1.ProfileResponse, { nullable: true }),
+    __param(0, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "profile", null);
 __decorate([
     type_graphql_1.Mutation(() => user_type_1.UserResponse),
     __param(0, type_graphql_1.Arg('options')),
@@ -250,7 +273,9 @@ __decorate([
 UserResolver = __decorate([
     typedi_1.Service(),
     type_graphql_1.Resolver(entities_1.User),
-    __metadata("design:paramtypes", [user_service_1.default])
+    __metadata("design:paramtypes", [user_service_1.default,
+        workexp_service_1.default,
+        workskill_service_1.default])
 ], UserResolver);
 exports.default = UserResolver;
 //# sourceMappingURL=index.js.map

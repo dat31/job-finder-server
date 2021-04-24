@@ -1,7 +1,7 @@
-import voteStatusLoader from "./voteStatusLoader";
 import companyLoader from "./companyLoader";
+import createJobSaveStatusLoader from "./createJobSaveStatusLoader";
 
 export {
-    voteStatusLoader,
-    companyLoader
+    companyLoader,
+    createJobSaveStatusLoader
 }

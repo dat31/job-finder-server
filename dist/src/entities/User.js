@@ -17,6 +17,8 @@ const typeorm_1 = require("typeorm");
 const Post_1 = __importDefault(require("./Post"));
 const Updoot_1 = __importDefault(require("./Updoot"));
 const BaseEntity_1 = __importDefault(require("../base/BaseEntity"));
+const WorkExperience_1 = __importDefault(require("./WorkExperience"));
+const WorkSkill_1 = __importDefault(require("./WorkSkill"));
 var Roles;
 (function (Roles) {
     Roles["COMPANY"] = "COMPANY";
@@ -47,13 +49,36 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    typeorm_1.Column("int", { array: true, nullable: true }),
+    typeorm_1.Column("int", {
+        array: true,
+        nullable: true
+    }),
     __metadata("design:type", Array)
 ], User.prototype, "savedJobIds", void 0);
 __decorate([
-    typeorm_1.Column("int", { array: true, nullable: true }),
+    typeorm_1.Column("int", {
+        array: true,
+        nullable: true
+    }),
     __metadata("design:type", Object)
 ], User.prototype, "notInterestedJobIds", void 0);
+__decorate([
+    typeorm_1.Column("int", {
+        array: true,
+        nullable: true,
+    }),
+    __metadata("design:type", Object)
+], User.prototype, "reportedJobIds", void 0);
+__decorate([
+    type_graphql_1.Field(() => [WorkExperience_1.default]),
+    typeorm_1.OneToMany(() => WorkExperience_1.default, workExp => workExp.userId),
+    __metadata("design:type", Array)
+], User.prototype, "workExperiences", void 0);
+__decorate([
+    type_graphql_1.Field(() => [WorkSkill_1.default]),
+    typeorm_1.OneToMany(() => WorkSkill_1.default, workSkill => workSkill.userId),
+    __metadata("design:type", Array)
+], User.prototype, "workSkills", void 0);
 User = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()

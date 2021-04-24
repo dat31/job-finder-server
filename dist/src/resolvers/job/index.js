@@ -32,24 +32,19 @@ const typedi_1 = require("typedi");
 const loader_1 = require("../../loader");
 const typeorm_1 = require("typeorm");
 const user_service_1 = __importDefault(require("../user/user.service"));
-const LIMIT_DISPLAY_JOBS = 6;
-const ALREADY_DISPLAYED_JOB_IDS = "ALREADY_DISPLAYED_JOB_IDS";
 let JobResolver = class JobResolver {
     constructor(userService, jobService) {
         this.userService = userService;
         this.jobService = jobService;
+        this.LIMIT_DISPLAY_JOBS = 6;
+        this.JOB_PER_PAGE = 20;
+        this.ALREADY_DISPLAYED_JOB_IDS = "ALREADY_DISPLAYED_JOB_IDS";
     }
     company(job) {
         return loader_1.companyLoader.load(job.companyId);
     }
     salary(job) {
-        const { salary } = job || {};
-        if (Array.isArray(salary) && salary.length > 0) {
-            return salary.length === 2
-                ? `${salary[0]} - ${salary[1]}`
-                : `Upto ${salary[0]}`;
-        }
-        return "Offer";
+        return this.jobService.getSalary(job === null || job === void 0 ? void 0 : job.salary);
     }
     createJob({ createJobInput }) {
         return this.jobService.create(createJobInput);
@@ -57,13 +52,29 @@ let JobResolver = class JobResolver {
     updateJob({ updateJobInput }) {
         return this.jobService.update(updateJobInput.id, updateJobInput);
     }
+    saveJob(ctx, jobId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.jobService.saveJob(ctx.req.session.userId, jobId);
+        });
+    }
     reportJob(ctx, jobId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const alreadyDisplayedJobIds = yield this.getHasDisplayedJobIds(ctx.redis);
+            const alreadyDisplayedJobIds = yield this.getAlreadyDisplayedJobIds(ctx.redis);
             const notInIds = (alreadyDisplayedJobIds ? alreadyDisplayedJobIds : []).concat([jobId]);
-            const jobToReplace = yield this.jobService.findOne({
+            const jobToReplace = yield this.jobService.getRepository().findOne({
                 id: typeorm_1.Not(typeorm_1.In(notInIds))
             });
+            const { userId } = ctx.req.session;
+            if (!userId) {
+                return {
+                    jobToReplace,
+                    reportedJobId: jobId
+                };
+            }
+            const user = this.userService.getById(userId);
+            if (user) {
+                yield this.userService.updateBasedOnPrevious(userId, user => (Object.assign(Object.assign({}, user), { reportedJobIds: user.reportedJobIds ? [...user.reportedJobIds, jobId] : [jobId] })));
+            }
             return {
                 jobToReplace,
                 reportedJobId: jobId
@@ -77,22 +88,36 @@ let JobResolver = class JobResolver {
     }
     hottestJob(ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.jobService.getAll(yield this.getFindCondition(ctx, { viewCount: "DESC" }));
+            const result = yield this.jobService.getAll(yield this.getFindCondition(ctx, { viewCount: "DESC" }));
+            if (result.items) {
+                yield this.setAlreadyDisplayedJobIds(ctx.redis, result.items.map(job => job.id));
+            }
+            return result;
         });
     }
     newestJob(ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.jobService.getAll(yield this.getFindCondition(ctx, { createdAt: "DESC" }));
+            const result = yield this.jobService.getAll(yield this.getFindCondition(ctx, { createdAt: "DESC" }));
+            if (result.items) {
+                yield this.setAlreadyDisplayedJobIds(ctx.redis, result.items.map(job => job.id));
+            }
+            return result;
         });
     }
     relatedJobs(ctx, currentJobId, companyId, jobCategory) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.jobService.getAll(yield this.getFindCondition(ctx, undefined, undefined, {
-                title: typeorm_1.Like(jobCategory),
-                companyId: typeorm_1.Equal(companyId),
-                id: typeorm_1.Not(typeorm_1.Equal(currentJobId))
-            }));
+            return this.jobService.getAll(yield this.getFindCondition(ctx, undefined, undefined, { title: typeorm_1.Like(jobCategory) }, currentJobId));
         });
+    }
+    hottestCategories() {
+        return Promise.resolve([
+            { title: "Development", numberOfJobs: "100+ jobs" },
+            { title: "Design", numberOfJobs: "100+ jobs" },
+            { title: "Security", numberOfJobs: "100+ jobs" },
+            { title: "Development", numberOfJobs: "100+ jobs" },
+            { title: "Design", numberOfJobs: "100+ jobs" },
+            { title: "Security", numberOfJobs: "100+ jobs" },
+        ]);
     }
     deleteJob(id) {
         return this.jobService.delete(id);
@@ -100,17 +125,20 @@ let JobResolver = class JobResolver {
     job(id) {
         return this.jobService.getById(id);
     }
-    getFindCondition(ctx, order, take = LIMIT_DISPLAY_JOBS, where = {}) {
+    getFindCondition(ctx, order, take = this.LIMIT_DISPLAY_JOBS, where = {}, omitJobId) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.userService.getById(ctx === null || ctx === void 0 ? void 0 : ctx.req.session.userId);
-            const { notInterestedJobIds = [] } = user || {};
-            if (!notInterestedJobIds || notInterestedJobIds.length <= 0) {
+            if (!user) {
                 return ({ order, take });
             }
+            const { notInterestedJobIds = [], reportedJobIds = [] } = user || {};
+            const notIn = (notInterestedJobIds ? notInterestedJobIds : [])
+                .concat(reportedJobIds ? reportedJobIds : [])
+                .concat(omitJobId ? omitJobId : []);
             return ({
                 order,
                 take,
-                where: Object.assign({ id: typeorm_1.Not(typeorm_1.In(notInterestedJobIds)) }, where)
+                where: Object.assign({ id: typeorm_1.Not(typeorm_1.In(notIn)) }, where)
             });
         });
     }
@@ -118,21 +146,24 @@ let JobResolver = class JobResolver {
         if (json) {
             return JSON.parse(json);
         }
-        return null;
+        return undefined;
     }
-    setHasDisplayedJobIds(redis, value) {
+    setAlreadyDisplayedJobIds(redis, jobIds) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield redis.set(ALREADY_DISPLAYED_JOB_IDS, JSON.stringify(value));
+                const alreadyDisplayedJobIds = yield this.getAlreadyDisplayedJobIds(redis);
+                yield redis.set(this.ALREADY_DISPLAYED_JOB_IDS, JSON.stringify(Array.isArray(alreadyDisplayedJobIds)
+                    ? Array.from(new Set(jobIds.concat(alreadyDisplayedJobIds)))
+                    : jobIds));
             }
             catch (_) {
                 return Promise.resolve();
             }
         });
     }
-    getHasDisplayedJobIds(redis) {
+    getAlreadyDisplayedJobIds(redis) {
         return __awaiter(this, void 0, void 0, function* () {
-            const hasDisplayedJobIds = yield redis.get(ALREADY_DISPLAYED_JOB_IDS);
+            const hasDisplayedJobIds = yield redis.get(this.ALREADY_DISPLAYED_JOB_IDS);
             return this.parseJson(hasDisplayedJobIds);
         });
     }
@@ -165,6 +196,15 @@ __decorate([
     __metadata("design:paramtypes", [job_type_1.UpdateJobArgs]),
     __metadata("design:returntype", void 0)
 ], JobResolver.prototype, "updateJob", null);
+__decorate([
+    type_graphql_1.Authorized(),
+    type_graphql_1.Mutation(() => type_graphql_1.Int, { nullable: true }),
+    __param(0, type_graphql_1.Ctx()),
+    __param(1, type_graphql_1.Arg("jobId", () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], JobResolver.prototype, "saveJob", null);
 __decorate([
     type_graphql_1.Authorized(),
     type_graphql_1.Mutation(() => job_type_1.ReportJobResponse, { nullable: true }),
@@ -202,12 +242,18 @@ __decorate([
     __param(2, type_graphql_1.Arg("companyId", () => type_graphql_1.Int)),
     __param(3, type_graphql_1.Arg("jobCategory", () => String)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, Number, String]),
+    __metadata("design:paramtypes", [Object, Number, Number, String]),
     __metadata("design:returntype", Promise)
 ], JobResolver.prototype, "relatedJobs", null);
 __decorate([
+    type_graphql_1.Query(() => [job_type_1.CategoriesResponse]),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], JobResolver.prototype, "hottestCategories", null);
+__decorate([
     type_graphql_1.Authorized("ADMIN"),
-    type_graphql_1.Mutation(() => job_type_1.DeleteJobResponse),
+    type_graphql_1.Mutation(() => type_graphql_1.Int),
     __param(0, type_graphql_1.Arg("id", () => type_graphql_1.Int)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),

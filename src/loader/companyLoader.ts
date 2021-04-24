@@ -1,7 +1,7 @@
 import { Company } from "../entities";
-import createLoader from "./createLoader";
+import createCommonLoader from "./createCommonLoader";
 
 
-const companyLoader = createLoader<number, Company>( Company )
+const companyLoader = createCommonLoader<number, Company>( Company )
 
 export default companyLoader

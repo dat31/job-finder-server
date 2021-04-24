@@ -11,21 +11,54 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var JobService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-const typeorm_1 = require("typeorm");
 const typedi_1 = require("typedi");
 const base_1 = require("../../base");
 let JobService = JobService_1 = class JobService extends base_1.BaseService {
-    constructor(repository) {
-        super(repository);
+    constructor([jobRepo, userRepo]) {
+        super(jobRepo);
+        this.userRepository = userRepo;
+    }
+    getSalary(salaryRes) {
+        if (!salaryRes) {
+            return "Offer";
+        }
+        if (Array.isArray(salaryRes) && salaryRes.length > 0) {
+            return salaryRes.length === 2
+                ? `${salaryRes[0]} - ${salaryRes[1]}`
+                : `Upto ${salaryRes[0]}`;
+        }
+        return "Offer";
+    }
+    saveJob(userId, jobId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.userRepository.findOne(userId);
+            if (!user) {
+                return null;
+            }
+            if (user.savedJobIds.some((savedJobId) => savedJobId === jobId)) {
+                return jobId;
+            }
+            yield this.userRepository.update(user.id, { savedJobIds: [...user.savedJobIds, jobId] });
+            return jobId;
+        });
     }
 };
 JobService.DI_KEY = "JOB_SERVICE";
 JobService = JobService_1 = __decorate([
     typedi_1.Service(),
     __param(0, typedi_1.Inject(JobService_1.DI_KEY.toString())),
-    __metadata("design:paramtypes", [typeorm_1.Repository])
+    __metadata("design:paramtypes", [Array])
 ], JobService);
 exports.default = JobService;
 //# sourceMappingURL=job.service.js.map

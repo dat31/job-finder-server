@@ -1,25 +1,31 @@
-import { buildSchema, ClassType } from "type-graphql";
+import { buildSchema } from "type-graphql";
 import resolvers from "../resolvers";
 import { Context } from "../types";
 import { redis } from "./redisConfig";
 import { Container } from "typedi";
-import CompanyService from "../resolvers/company/company.service";
-import { getRepository } from "typeorm";
-import { Company, Job, User } from "../entities";
+import { EntityTarget, getRepository } from "typeorm";
+import { Company, Job, User, WorkExperience, WorkSkill } from "../entities";
 import JobService from "../resolvers/job/job.service";
 import UserService from "../resolvers/user/user.service";
+import WorkExperienceService from "../resolvers/workexperience/workexp.service";
+import CompanyService from "../resolvers/company/company.service";
 import authChecker from "../authChecker";
+import WorkSkillService from "../resolvers/workskill/workskill.service";
 
-function inject<TEntity>( EntityClass: ClassType<TEntity>, id: string ) {
+function inject( EntityClass: EntityTarget<unknown> | EntityTarget<unknown>[], id: string ) {
     Container.set( {
         id,
-        factory: () => getRepository( EntityClass )
+        factory: () => Array.isArray( EntityClass )
+            ? EntityClass.map( Class => getRepository( Class ) )
+            : getRepository( EntityClass )
     } )
 }
 
-inject<Company>( Company, CompanyService.DI_KEY.toString() )
-inject<Job>( Job, JobService.DI_KEY.toString() )
-inject<User>( User, UserService.DI_KEY.toString() )
+inject( Company, CompanyService.DI_KEY.toString() )
+inject( [ Job, User ], JobService.DI_KEY.toString() )
+inject( [ User, WorkExperience, WorkSkill, Job ], UserService.DI_KEY.toString() )
+inject( WorkExperience, WorkExperienceService.DI_KEY.toString() )
+inject( WorkSkill, WorkSkillService.DI_KEY.toString() )
 
 async function getApolloServerConfig() {
     return ( {
